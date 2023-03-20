@@ -1,0 +1,42 @@
+apiVersion: compliancetest/v1
+kind: Specification
+metadata:
+  name: "r4rs"
+  displayName: "R4RS"
+  description: "Revised(4) Report on the Algorithmic Language Scheme, Published 2 November 1991"
+  labels:
+    report: r4rs
+
+sections:
+- metadata:
+    name: "r4rs-core"
+    displayName: "R4RS Core"
+  testSelector: "r4rs: core"
+  optional: false
+  sections:
+  - metadata:
+      name: "booleans"
+      displayName: "6.1 Booleans"
+    testSelector: "r4rs/heading: 6.1, r4rs/essential: true"
+    sections:
+    - metadata:
+        name: "literal"
+        displayName: "Literals"
+      testSelector: "r4rs/heading: 6.1, r4rs/literal: boolean, r4rs/essential: true"
+    sections:
+    - metadata:
+        name: "procedure-not"
+        displayName: "Essential Procedure: **not** _obj_"
+        description: |-
+          Not returns `#t` if obj is false, and returns `#f` otherwise.
+      testSelector: "r4rs/heading: 6.1, r4rs/literal: boolean, r4rs/essential: true"
+- metadata:
+    name: "r4rs-macros"
+    displayName: "R4RS Macros"
+  testSelector: "r4rs: macro"
+  optional: true
+
+exclusions:
+- metadata:
+    name: "Items explicitly excluded from R4RS"
+  testSelector: "r4rs: exclude"
