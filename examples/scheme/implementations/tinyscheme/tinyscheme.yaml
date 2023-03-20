@@ -1,0 +1,16 @@
+apiVersion: compliancetest/v1
+kind: Implementation
+metadata:
+  name: tinyscheme
+variants:
+- metadata:
+    name: latest
+    displayName: "Latest"
+  runtime:
+    local: {}
+  specifications:
+  - r4rs
+  testCommand: 
+  - tinyscheme
+  - -c
+  - (display $(PROGRAM))

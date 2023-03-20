@@ -1,0 +1,97 @@
+apiVersion: compliancetest/v1
+kind: Test
+metadata:
+  name: booleans
+  labels:
+    r4rs: core
+    r4rs/heading: "6.1"
+    r4rs/essential: "true"
+tests:
+- context:
+    template:
+      labels:
+        r4rs/literal: boolean
+      displayName:
+        prefix: "Literal "
+        Suffix: " identity"
+    tests:
+    - case:
+        displayName: "true"
+        input: "#t"
+        expect:
+          exact: "#t"
+    - case:
+        displayName: "false"
+        input: "#f"
+        expect:
+          exact: "#f"
+- context:
+    template:
+      labels:
+        r4rs/procedure: not
+      displayName:
+        prefix: "not "
+      description: 
+        value: |-
+          essential procedure: **not** _obj_
+
+          Not returns `#t` if obj is false, and returns `#f` otherwise.
+      expect:
+        exact: "#f"
+    tests:
+    - case:
+        displayName: "true"
+        input: "(not #t)"
+    - case:
+        displayName: integer
+        input: "(not 3)"
+    - case:
+        displayName: list
+        input: "(not (list 3))"
+    - case:
+        displayName: empty-list
+        input: "(not '())"
+    - case:
+        displayName: procedure
+        input: "(not (list))"
+    - case:
+        displayName: nil
+        input: "(not 'nil)"
+    - case:
+        displayName: "false"
+        input: "(not #f)"
+        expect:
+          exact: "#t"
+- context:
+    template:
+      labels:
+        r4rs/procedure: "boolean?"
+      displayName:
+        prefix: "boolean? "
+      description: 
+        value: |-
+          essential procedure: **boolean?** _obj_
+
+          Boolean? returns #t if obj is either #t or #f and returns #f otherwise.
+    tests:
+    - case:
+        displayName: "false literal"
+        input: "(boolean? #f)"
+        expect:
+          exact: "#t"
+    - case:
+        displayName: "true literal"
+        input: "(boolean? #t)"
+        expect:
+          exact: "#t"
+    - case:
+        displayName: "integer"
+        input: "(boolean? 0)"
+        expect:
+          exact: "#f"
+    - case:
+        displayName: "null"
+        input: "(boolean? '()')"
+        expect:
+          exact: "#f"
+
