@@ -5,19 +5,22 @@ with the various Scheme specifications.
 
 ## Model
 
-Implementation
-: A single implementatation of Scheme, may include multiple variants e.g.
-:  versions or operating models.
-:
-:  Implementations target one or more Reports.
+<dl>
+<dt>Implementation</dt>
+<dd>
+    A single implementatation of Scheme, may include multiple variants e.g. versions or operating models.
+    Implementations target one or more Reports.
+</dd>
 
-Report
-: A single specification of Scheme broken into multiple optional and non-optional
-: compliance specifications. Specifications are made up of one or more tests.
+<dt>Report</dt>
+<dd>
+    A single specification of Scheme broken into multiple optional and non-optional
+    compliance specifications. Specifications are made up of one or more tests.
+</dd>
 
-Test
-: A test for a single unit of functionality. 
+<dt>Test</dt>
+<dd>
+A test for a single unit of functionality.
+</dd>
+</dl>
 
-## Updating the model
-
-- Check for 
