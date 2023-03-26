@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/google/uuid"
 	"github.com/josephlewis42/scheme-compliance/tester/validation"
 )
 
@@ -40,10 +41,22 @@ func (t *Test) Validate(validator *validation.Validator) {
 	})
 }
 
+// Tidy cleans up the structure to remove validation warnings.
+func (t *Test) Tidy() {
+	t.TestContext.Tidy()
+}
+
 // TestContext holds a set of related tests and a template that can be applied to them.
 type TestContext struct {
 	Template TestCaseTemplate    `json:"template,omitempty"`
 	Tests    []TestContextOrCase `json:"tests"`
+}
+
+// Tidy cleans up the structure to remove validation warnings.
+func (t *TestContext) Tidy() {
+	for _, test := range t.Tests {
+		test.Tidy()
+	}
 }
 
 // WalkCases executes callback for each child test case that's had the template applied.
@@ -73,6 +86,16 @@ func (t *TestContext) ValidateEffective(validator *validation.Validator, parent 
 type TestContextOrCase struct {
 	Context *TestContext `json:"context,omitempty"`
 	Case    *TestCase    `json:"case,omitempty"`
+}
+
+// Tidy cleans up the structure to remove validation warnings.
+func (t *TestContextOrCase) Tidy() {
+	if t.Case != nil {
+		t.Case.Tidy()
+	}
+	if t.Context != nil {
+		t.Context.Tidy()
+	}
 }
 
 // WalkCases executes callback for each child test case that's had the template applied.
@@ -159,8 +182,16 @@ type TestCase struct {
 	DisplayMetadata `json:",inline"`
 	UUID            *string          `json:"uuid"`
 	Input           *string          `json:"input"`
-	Expect          *TestExpectation `json:"expect"`
+	Expect          *TestExpectation `json:"expect,omitempty"`
 	Skip            *string          `json:"skip,omitempty"`
+}
+
+// Tidy cleans up the structure to remove validation warnings.
+func (t *TestCase) Tidy() {
+	if t.UUID == nil {
+		id := uuid.New().String()
+		t.UUID = &id
+	}
 }
 
 func (t *TestCase) ValidateEffective(validator *validation.Validator, parent HydratedTestCaseTemplate) {

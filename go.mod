@@ -2,7 +2,10 @@ module github.com/josephlewis42/scheme-compliance
 
 go 1.20
 
-require github.com/spf13/cobra v1.6.1
+require (
+	github.com/google/uuid v1.1.2
+	github.com/spf13/cobra v1.6.1
+)
 
 require (
 	github.com/go-logr/logr v1.2.3 // indirect
@@ -12,6 +15,7 @@ require (
 )
 
 require (
+	github.com/google/go-cmp v0.5.9
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	k8s.io/apimachinery v0.26.2

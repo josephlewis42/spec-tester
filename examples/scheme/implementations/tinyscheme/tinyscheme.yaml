@@ -4,13 +4,13 @@ metadata:
   name: tinyscheme
 variants:
 - metadata:
+    displayName: Latest
     name: latest
-    displayName: "Latest"
   runtime:
     local: {}
   specifications:
   - r4rs
-  testCommand: 
+  testCommand:
   - tinyscheme
   - -c
   - (display $(PROGRAM))

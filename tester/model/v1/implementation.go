@@ -28,6 +28,11 @@ func (impl *Implementation) Validate(validator *validation.Validator) {
 	})
 }
 
+// Tidy cleans up the structure to remove validation warnings.
+func (impl *Implementation) Tidy() {
+	// no-op for implemnetations.
+}
+
 type ImplementationVariant struct {
 	Metadata       Metadata             `json:"metadata"`
 	Runtime        ImplementationSource `json:"runtime"`

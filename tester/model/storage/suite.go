@@ -1,6 +1,9 @@
 package storage
 
 import (
+	"fmt"
+	"io"
+
 	v1 "github.com/josephlewis42/scheme-compliance/tester/model/v1"
 	"github.com/josephlewis42/scheme-compliance/tester/validation"
 )
@@ -9,9 +12,9 @@ import (
 type Suite struct {
 	RootPath string
 
-	Implementations []File[v1.Implementation]
-	Specifications  []File[v1.Specification]
-	Tests           []File[v1.Test]
+	Implementations []YamlFile[v1.Implementation]
+	Specifications  []YamlFile[v1.Specification]
+	Tests           []YamlFile[v1.Test]
 }
 
 func (s *Suite) RunValidation(callback func(name string, v *validation.Validator)) {
@@ -37,17 +40,56 @@ func (s *Suite) RunValidation(callback func(name string, v *validation.Validator
 
 	// Each item should have a unique name
 
-	// Each test should be used
-
-	// Each specification should explicitly include or exclude all tests
-
 	// Exclusions should not overlap with inclusions
+}
 
-	// Implementations should have >= 1 version
+// Tidy cleans up the structure to remove validation warnings.
+func (s *Suite) Tidy() {
+	for _, impl := range s.Implementations {
+		impl.Value.Tidy()
+	}
+
+	for _, spec := range s.Specifications {
+		spec.Value.Tidy()
+	}
+
+	for _, test := range s.Tests {
+		test.Value.Tidy()
+	}
+}
+
+// Save updates the files on disk.
+func (s *Suite) Save() {
+	for _, impl := range s.Implementations {
+		impl.Save()
+	}
+
+	for _, spec := range s.Specifications {
+		spec.Save()
+	}
+
+	for _, test := range s.Tests {
+		test.Save()
+	}
+}
+
+// Diff returns a human-readable diff for the whole suite compared to its stored version.
+// The output isn't stable.
+func (s *Suite) Diff(w io.Writer) {
+	for _, impl := range s.Implementations {
+		fmt.Fprint(w, impl.Diff())
+	}
+
+	for _, spec := range s.Specifications {
+		fmt.Fprint(w, spec.Diff())
+	}
+
+	for _, test := range s.Tests {
+		fmt.Fprint(w, test.Diff())
+	}
 }
 
 func (s *Suite) HydrateTests() (hydrated []v1.HydratedTestCase) {
-
 	for _, t := range s.Tests {
 		t.Value.WalkCases(func(test v1.HydratedTestCase) {
 			hydrated = append(hydrated, test)
@@ -55,10 +97,4 @@ func (s *Suite) HydrateTests() (hydrated []v1.HydratedTestCase) {
 	}
 
 	return
-}
-
-// File maps an on-disk file with a specific parsed value from that file.
-type File[T any] struct {
-	Path  string
-	Value T
 }

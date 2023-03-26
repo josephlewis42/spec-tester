@@ -1,42 +1,35 @@
 apiVersion: compliancetest/v1
+exclusionTestSelector: 'r4rs: exclude'
 kind: Specification
 metadata:
-  name: "r4rs"
-  displayName: "R4RS"
-  description: "Revised(4) Report on the Algorithmic Language Scheme, Published 2 November 1991"
+  description: Revised(4) Report on the Algorithmic Language Scheme, Published 2 November
+    1991
+  displayName: R4RS
   labels:
     report: r4rs
-
+  name: r4rs
 sections:
 - metadata:
-    name: "r4rs-core"
-    displayName: "R4RS Core"
-  testSelector: "r4rs: core"
-  optional: false
+    displayName: R4RS Core
+    name: r4rs-core
   sections:
   - metadata:
-      name: "booleans"
-      displayName: "6.1 Booleans"
-    testSelector: "r4rs/heading: 6.1, r4rs/essential: true"
+      displayName: 6.1 Booleans
+      name: booleans
     sections:
     - metadata:
-        name: "literal"
-        displayName: "Literals"
-      testSelector: "r4rs/heading: 6.1, r4rs/literal: boolean, r4rs/essential: true"
-    sections:
+        displayName: Literals
+        name: literal
+      testSelector: 'r4rs/heading: 6.1, r4rs/literal: boolean, r4rs/essential: true'
     - metadata:
-        name: "procedure-not"
-        displayName: "Essential Procedure: **not** _obj_"
-        description: |-
-          Not returns `#t` if obj is false, and returns `#f` otherwise.
-      testSelector: "r4rs/heading: 6.1, r4rs/literal: boolean, r4rs/essential: true"
+        description: Not returns `#t` if obj is false, and returns `#f` otherwise.
+        displayName: 'Essential Procedure: **not** _obj_'
+        name: procedure-not
+      testSelector: 'r4rs/heading: 6.1, r4rs/literal: boolean, r4rs/essential: true'
+    testSelector: 'r4rs/heading: 6.1, r4rs/essential: true'
+  testSelector: 'r4rs: core'
 - metadata:
-    name: "r4rs-macros"
-    displayName: "R4RS Macros"
-  testSelector: "r4rs: macro"
+    displayName: R4RS Macros
+    name: r4rs-macros
   optional: true
-
-exclusions:
-- metadata:
-    name: "Items explicitly excluded from R4RS"
-  testSelector: "r4rs: exclude"
+  testSelector: 'r4rs: macro'

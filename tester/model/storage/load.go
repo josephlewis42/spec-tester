@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"sort"
-	"strings"
 
 	v1 "github.com/josephlewis42/scheme-compliance/tester/model/v1"
 	"sigs.k8s.io/yaml"
@@ -36,8 +35,8 @@ func LoadSuite(path string) (*Suite, error) {
 	return out, nil
 }
 
-func decode[T any](root, subdir string) ([]File[T], error) {
-	var results []File[T]
+func decode[T any](root, subdir string) ([]YamlFile[T], error) {
+	var results []YamlFile[T]
 
 	err := filepath.Walk(filepath.Join(root, subdir), func(path string, info fs.FileInfo, err error) error {
 		if err != nil || info.IsDir() {
@@ -55,9 +54,11 @@ func decode[T any](root, subdir string) ([]File[T], error) {
 				return fmt.Errorf("couldn't decode %s: %e", path, err)
 			}
 
-			results = append(results, File[T]{
-				Path:  strings.TrimPrefix(path, root),
-				Value: tmp,
+			results = append(results, YamlFile[T]{
+				originalPath: path,
+				originalData: bytes,
+				Path:         path,
+				Value:        tmp,
 			})
 		}
 
