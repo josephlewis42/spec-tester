@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/google/uuid"
 	"github.com/josephlewis42/scheme-compliance/tester/validation"
 )
 
@@ -179,19 +178,15 @@ func (sm *StringMutator) MergeOver(base StringMutator) (merged StringMutator) {
 }
 
 type TestCase struct {
-	DisplayMetadata `json:",inline"`
-	UUID            *string          `json:"uuid"`
-	Input           *string          `json:"input"`
-	Expect          *TestExpectation `json:"expect,omitempty"`
-	Skip            *string          `json:"skip,omitempty"`
+	IdentifiableMetadata `json:",inline"`
+	Input                *string          `json:"input"`
+	Expect               *TestExpectation `json:"expect,omitempty"`
+	Skip                 *string          `json:"skip,omitempty"`
 }
 
 // Tidy cleans up the structure to remove validation warnings.
 func (t *TestCase) Tidy() {
-	if t.UUID == nil {
-		id := uuid.New().String()
-		t.UUID = &id
-	}
+	t.IdentifiableMetadata.Tidy()
 }
 
 func (t *TestCase) ValidateEffective(validator *validation.Validator, parent HydratedTestCaseTemplate) {

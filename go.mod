@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/google/uuid v1.1.2
 	github.com/spf13/cobra v1.6.1
+	google.golang.org/protobuf v1.28.1
 )
 
 require (

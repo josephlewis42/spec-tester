@@ -3,6 +3,7 @@ package v1
 import (
 	"regexp"
 
+	"github.com/google/uuid"
 	"github.com/josephlewis42/scheme-compliance/tester/validation"
 
 	"k8s.io/apimachinery/pkg/labels"
@@ -65,6 +66,25 @@ func (m *Metadata) Validate(validator *validation.Validator) {
 	})
 
 	m.DisplayMetadata.Validate(validator)
+}
+
+type IdentifiableMetadata struct {
+	// Unique name for the object.
+	UUID *string `json:"uuid"`
+
+	DisplayMetadata `json:",inline"`
+}
+
+func (m *IdentifiableMetadata) Validate(validator *validation.Validator) {
+	m.Labels.Validate(validator.Field("labels"))
+}
+
+// Tidy cleans up the structure to remove validation warnings.
+func (t *IdentifiableMetadata) Tidy() {
+	if t.UUID == nil {
+		id := uuid.New().String()
+		t.UUID = &id
+	}
 }
 
 type DisplayMetadata struct {

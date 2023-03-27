@@ -39,8 +39,10 @@ func (spec *Specification) Validate(validator *validation.Validator) {
 }
 
 // Tidy cleans up the structure to remove validation warnings.
-func (impl *Specification) Tidy() {
-	// no-op for specifications.
+func (spec *Specification) Tidy() {
+	for _, section := range spec.Sections {
+		section.Tidy()
+	}
 }
 
 type SpecificationSection struct {
@@ -63,6 +65,13 @@ func (section *SpecificationSection) Validate(validator *validation.Validator) {
 			section.Validate(validator.AtIndex(idx))
 		}
 	})
+}
+
+// Tidy cleans up the structure to remove validation warnings.
+func (section *SpecificationSection) Tidy() {
+	for _, section := range section.Sections {
+		section.Tidy()
+	}
 }
 
 // HydratedSection is a runtime representation of a report section.

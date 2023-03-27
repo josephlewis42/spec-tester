@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+option go_package = "github.com/josephlewis42/spec-tester/tester/executor";
+
+message TestCase {
+  // Unique ID for the test case.
+  string uid = 1;
+
+  // Human readable name for the case.
+  string display_name = 2;
+
+  // Markdown description of the test case.
+  string description_markdown = 3;
+
+  // Labels for selecting the test case.
+  map<string, string> labels = 4;
+
+  oneof test_type {
+    SkipTest skip = 5;
+    EvalTest eval = 6;
+    CaptureEval capture_eval = 7;
+  }
+}
+
+// A test that's skipped.
+message SkipTest {
+  // Reason the test was skipped.
+  string message = 1;
+}
+
+// A test that's evaluated and checked against a value.
+message EvalTest {
+  string input = 1;
+
+  oneof expect {
+    string exact = 2;
+  }
+}
+
+// A test that is for undefined behavior, the output is captured.
+message CaptureEval {
+  string input = 1;
+}
+
