@@ -5,20 +5,16 @@ metadata:
     r4rs: core
     r4rs/heading: "4.1"
   name: primitive-expressions
-template:
-  description: {}
-  displayName: {}
+template: {}
 tests:
 - context:
     template:
-      description:
-        value: |-
-          essential syntax: <variable>
+      description: |-
+        essential syntax: <variable>
 
-          An expression consisting of a variable is a variable reference. The value of the variable reference
-          is the value stored in the location to which the variable is bound.
-          It is an error to reference an unbound variable.
-      displayName: {}
+        An expression consisting of a variable is a variable reference. The value of the variable reference
+        is the value stored in the location to which the variable is bound.
+        It is an error to reference an unbound variable.
       labels:
         r4rs/syntax: variable-reference
     tests:

@@ -120,8 +120,8 @@ func (t *TestContextOrCase) ValidateEffective(validator *validation.Validator, p
 }
 
 type TestCaseTemplate struct {
-	DisplayName StringMutator `json:"displayName,omitempty"`
-	Description StringMutator `json:"description,omitempty"`
+	DisplayName string `json:"displayName,omitempty"`
+	Description string `json:"description,omitempty"`
 
 	Labels Labels           `json:"labels,omitempty"`
 	Expect *TestExpectation `json:"expect,omitempty"`
@@ -137,8 +137,8 @@ func (template *TestCaseTemplate) Validate(validator *validation.Validator) {
 
 func (template *TestCaseTemplate) Hydrate(parent HydratedTestCaseTemplate) (hydrated HydratedTestCaseTemplate) {
 	hydrated.Path = parent.Path
-	hydrated.Description = template.Description.MergeOver(parent.Description)
-	hydrated.DisplayName = template.DisplayName.MergeOver(parent.DisplayName)
+	hydrated.Description = coalesce(template.Description, parent.Description)
+	hydrated.DisplayName = coalesce(template.DisplayName, parent.DisplayName)
 
 	hydrated.Labels = template.Labels.MergeOver(parent.Labels)
 	hydrated.Expect = coalesce(template.Expect, parent.Expect)
@@ -155,27 +155,6 @@ func (template *HydratedTestCaseTemplate) WithPathSuffix(suffix string) Hydrated
 	copy := *template
 	copy.Path += suffix
 	return copy
-}
-
-type StringMutator struct {
-	Prefix string `json:"prefix,omitempty"`
-	Suffix string `json:"suffix,omitempty"`
-	Value  string `json:"value,omitempty"`
-}
-
-func (sm *StringMutator) Apply(input string) string {
-	if input == "" {
-		input = sm.Value
-	}
-
-	return sm.Prefix + input + sm.Suffix
-}
-
-func (sm *StringMutator) MergeOver(base StringMutator) (merged StringMutator) {
-	merged.Prefix = base.Prefix + sm.Prefix
-	merged.Value = coalesce(sm.Value, base.Value)
-	merged.Suffix = sm.Suffix + base.Suffix
-	return
 }
 
 type TestCase struct {
@@ -233,8 +212,8 @@ func (tc *TestCase) Hydrate(parent HydratedTestCaseTemplate) *executor.TestCase 
 		Metadata: &executor.Metadata{
 			Uid:                 uid,
 			Labels:              tc.DisplayMetadata.Labels.MergeOver(parent.Labels),
-			DisplayName:         parent.DisplayName.Apply(tc.DisplayMetadata.DisplayName),
-			DescriptionMarkdown: parent.Description.Apply(tc.DisplayMetadata.Description),
+			DisplayName:         coalesce(tc.DisplayMetadata.DisplayName, parent.DisplayName),
+			DescriptionMarkdown: coalesce(tc.DisplayMetadata.Description, parent.Description),
 		},
 	}
 	expect := coalesce(tc.Expect, parent.Expect)

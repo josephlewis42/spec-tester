@@ -6,107 +6,95 @@ metadata:
     r4rs/essential: "true"
     r4rs/heading: "6.1"
   name: booleans
-template:
-  description: {}
-  displayName: {}
+template: {}
 tests:
 - context:
     template:
-      description: {}
-      displayName:
-        prefix: 'Literal '
-        suffix: ' identity'
       labels:
         r4rs/literal: boolean
     tests:
     - case:
-        displayName: "true"
+        displayName: literal true identity
         expect:
           exact: '#t'
         input: '#t'
         uuid: e7f36782-8a6b-4b83-ab56-11521fc276c3
     - case:
-        displayName: "false"
+        displayName: literal false identity
         expect:
           exact: '#f'
         input: '#f'
         uuid: e0e4a96a-180e-48c0-929f-9b0f3b2a1c37
 - context:
     template:
-      description:
-        value: |-
-          essential procedure: **not** _obj_
+      description: |-
+        essential procedure: **not** _obj_
 
-          Not returns `#t` if obj is false, and returns `#f` otherwise.
-      displayName:
-        prefix: 'not '
+        Not returns `#t` if obj is false, and returns `#f` otherwise.
       expect:
         exact: '#f'
       labels:
         r4rs/procedure: not
     tests:
     - case:
-        displayName: "true"
+        displayName: not true
         input: '(not #t)'
         uuid: 8047d038-60e8-44e2-bd13-23ac1943f004
     - case:
-        displayName: integer
+        displayName: not integer
         input: (not 3)
         uuid: e1979862-0bf2-491f-b3b3-b1f459828164
     - case:
-        displayName: list
+        displayName: not list
         input: (not (list 3))
         uuid: 2713eacd-998d-4b8c-b8d3-447991355e64
     - case:
-        displayName: empty-list
+        displayName: not empty-list
         input: (not '())
         uuid: d64661bd-9cc0-447d-9f90-efef35aa4553
     - case:
-        displayName: procedure
+        displayName: not procedure
         input: (not (list))
         uuid: 656f792f-ec9d-4943-9525-caa08e1b3e3e
     - case:
-        displayName: nil
+        displayName: not nil
         input: (not 'nil)
         uuid: 2a1876f9-2be4-407a-be85-7ca1379aa5aa
     - case:
-        displayName: "false"
+        displayName: not false
         expect:
           exact: '#t'
         input: '(not #f)'
         uuid: a0d13023-77f6-4638-a05e-0b4b41ff67c2
 - context:
     template:
-      description:
-        value: |-
-          essential procedure: **boolean?** _obj_
+      description: |-
+        essential procedure: **boolean?** _obj_
 
-          Boolean? returns #t if obj is either #t or #f and returns #f otherwise.
-      displayName:
-        prefix: 'boolean? '
+        Boolean? returns #t if obj is either #t or #f and returns #f otherwise.
       labels:
         r4rs/procedure: boolean?
     tests:
     - case:
-        displayName: false literal
+        displayName: boolean? false literal
         expect:
           exact: '#t'
         input: '(boolean? #f)'
         uuid: 31ff3558-2b57-4a14-9d72-318d35c6d154
     - case:
-        displayName: true literal
+        displayName: boolean? true literal
         expect:
           exact: '#t'
         input: '(boolean? #t)'
         uuid: 91defb3e-7516-42b1-8e8f-4f17c0f7a4c1
     - case:
-        displayName: integer
+        displayName: boolean? integer
         expect:
           exact: '#f'
         input: (boolean? 0)
         uuid: 5a036dff-0c03-4824-a667-8be30aa14857
     - case:
-        displayName: "null"
+        displayName: boolean? null
         expect:
           exact: '#f'
         input: (boolean? '()')
