@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/josephlewis42/scheme-compliance/tester/executor"
 	"github.com/josephlewis42/scheme-compliance/tester/validation"
 )
 
@@ -27,7 +28,7 @@ func (t *Test) effectiveTemplate() HydratedTestCaseTemplate {
 	}
 }
 
-func (t *Test) WalkCases(callback func(HydratedTestCase)) {
+func (t *Test) WalkCases(callback func(*executor.TestCase)) {
 	t.TestContext.WalkCases(t.effectiveTemplate(), callback)
 }
 
@@ -59,7 +60,7 @@ func (t *TestContext) Tidy() {
 }
 
 // WalkCases executes callback for each child test case that's had the template applied.
-func (t *TestContext) WalkCases(parent HydratedTestCaseTemplate, callback func(HydratedTestCase)) {
+func (t *TestContext) WalkCases(parent HydratedTestCaseTemplate, callback func(*executor.TestCase)) {
 	parent = t.Template.Hydrate(parent.WithPathSuffix("/tests"))
 
 	for idx, entry := range t.Tests {
@@ -98,7 +99,7 @@ func (t *TestContextOrCase) Tidy() {
 }
 
 // WalkCases executes callback for each child test case that's had the template applied.
-func (t *TestContextOrCase) WalkCases(parent HydratedTestCaseTemplate, callback func(HydratedTestCase)) {
+func (t *TestContextOrCase) WalkCases(parent HydratedTestCaseTemplate, callback func(*executor.TestCase)) {
 	if t.Case != nil {
 		callback(t.Case.Hydrate(parent))
 	}
@@ -190,27 +191,26 @@ func (t *TestCase) Tidy() {
 }
 
 func (t *TestCase) ValidateEffective(validator *validation.Validator, parent HydratedTestCaseTemplate) {
-	effectiveTestCase := t.Hydrate(parent)
-	effectiveTestCase.DisplayMetadata.Validate(validator)
+	effectiveExpectation := coalesce(t.Expect, parent.Expect)
 
 	validator.WithField("input", func(validator *validation.Validator) {
-		if effectiveTestCase.Input == nil {
+		if t.Input == nil {
 			validator.Error("must be defined")
 		} else {
-			validation.AssertNotBlank(validator, *effectiveTestCase.Input)
+			validation.AssertNotBlank(validator, *t.Input)
 		}
 	})
 
 	validator.WithField("expect", func(validator *validation.Validator) {
-		if effectiveTestCase.Expect == nil {
+		if effectiveExpectation == nil {
 			validator.Error("must be defined")
 		} else {
-			effectiveTestCase.Expect.Validate(validator)
+			effectiveExpectation.Validate(validator)
 		}
 	})
 
 	validator.WithField("skip", func(validator *validation.Validator) {
-		if effectiveTestCase.Skip != nil {
+		if t.Skip != nil {
 			validator.Warning("test is skipped, reason: %q", *t.Skip)
 		}
 	})
@@ -223,29 +223,48 @@ func (tc *TestCase) IsSkipped() bool {
 
 // Hydrate merges properties from a parent test case into this one
 // to produce a single test output.
-func (tc *TestCase) Hydrate(parent HydratedTestCaseTemplate) HydratedTestCase {
-	var out TestCase
-	// Metadata fields
-	out.DisplayMetadata.DisplayName = parent.DisplayName.Apply(tc.DisplayMetadata.DisplayName)
-	out.DisplayMetadata.Description = parent.Description.Apply(tc.DisplayMetadata.Description)
-
-	out.DisplayMetadata.Labels = out.DisplayMetadata.Labels.MergeOver(parent.Labels)
-
-	// Test Fields
-	out.Input = tc.Input
-	out.Expect = coalesce(tc.Expect, parent.Expect)
-
-	out.Skip = tc.Skip
-
-	return HydratedTestCase{
-		Path:     parent.Path,
-		TestCase: out,
+func (tc *TestCase) Hydrate(parent HydratedTestCaseTemplate) *executor.TestCase {
+	uid := parent.Path
+	if uuid := tc.UUID; uuid != nil {
+		uid = *uuid
 	}
-}
 
-type HydratedTestCase struct {
-	Path     string `json:"path"`
-	TestCase `json:",inline"`
+	out := executor.TestCase{
+		Metadata: &executor.Metadata{
+			Uid:                 uid,
+			Labels:              tc.DisplayMetadata.Labels.MergeOver(parent.Labels),
+			DisplayName:         parent.DisplayName.Apply(tc.DisplayMetadata.DisplayName),
+			DescriptionMarkdown: parent.Description.Apply(tc.DisplayMetadata.Description),
+		},
+	}
+	expect := coalesce(tc.Expect, parent.Expect)
+
+	switch {
+	case tc.IsSkipped():
+		out.TestType = &executor.TestCase_Skip{
+			Skip: &executor.SkipTest{
+				Message: *tc.Skip,
+			},
+		}
+
+	case expect.Exact != nil:
+		out.TestType = &executor.TestCase_Eval{
+			Eval: &executor.EvalTest{
+				Input: *tc.Input,
+				Expect: &executor.EvalTest_Exact{
+					Exact: *expect.Exact,
+				},
+			},
+		}
+	case expect.Undefined != nil:
+		out.TestType = &executor.TestCase_CaptureEval{
+			CaptureEval: &executor.CaptureEval{
+				Input: *tc.Input,
+			},
+		}
+	}
+
+	return &out
 }
 
 func coalesce[T any](args ...T) (zero T) {

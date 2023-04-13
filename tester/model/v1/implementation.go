@@ -1,6 +1,9 @@
 package v1
 
-import "github.com/josephlewis42/scheme-compliance/tester/validation"
+import (
+	"github.com/josephlewis42/scheme-compliance/tester/executor"
+	"github.com/josephlewis42/scheme-compliance/tester/validation"
+)
 
 const (
 	TypeImplementation = "Implementation"
@@ -33,6 +36,18 @@ func (impl *Implementation) Tidy() {
 	// no-op for implemnetations.
 }
 
+func (impl *Implementation) ConvertToInternal() *executor.Implementation {
+	out := &executor.Implementation{
+		Metadata: impl.Metadata.ConvertToInternal(),
+	}
+
+	for _, variant := range impl.Variants {
+		out.Variants = append(out.Variants, variant.ConvertToInternal())
+	}
+
+	return out
+}
+
 type ImplementationVariant struct {
 	Metadata       Metadata             `json:"metadata"`
 	Runtime        ImplementationSource `json:"runtime"`
@@ -60,6 +75,26 @@ func (impl *ImplementationVariant) Validate(validator *validation.Validator) {
 			validator.Error("must reference at least one specification")
 		}
 	})
+}
+
+func (impl *ImplementationVariant) ConvertToInternal() *executor.ImplementationVariant {
+	out := &executor.ImplementationVariant{
+		Metadata: &executor.Metadata{
+			Uid:                 impl.Metadata.Name,
+			Labels:              impl.Metadata.Labels,
+			DisplayName:         impl.Metadata.DisplayName,
+			DescriptionMarkdown: impl.Metadata.Description,
+		},
+		SpecificationUids: impl.Specifications,
+		TestCommand:       impl.TestCommand,
+	}
+
+	switch {
+	case impl.Runtime.Local != nil:
+		out.Runtime = &executor.ImplementationVariant_Local{Local: &executor.ImplementationRuntimeLocal{}}
+	}
+
+	return out
 }
 
 type ImplementationSource struct {

@@ -2,23 +2,27 @@ syntax = "proto3";
 
 option go_package = "github.com/josephlewis42/spec-tester/tester/executor";
 
-message TestCase {
-  // Unique ID for the test case.
+message Metadata {
+  // Unique ID for the resource.
   string uid = 1;
 
-  // Human readable name for the case.
-  string display_name = 2;
+  // Labels for filtering.
+  map<string, string> labels = 2;
 
-  // Markdown description of the test case.
-  string description_markdown = 3;
+  // Human readable name to be shown in reports
+  string display_name = 3;
 
-  // Labels for selecting the test case.
-  map<string, string> labels = 4;
+  // Markdown description to be shown in reports.
+  string description_markdown = 4;
+}
+
+message TestCase {
+  Metadata metadata = 1;
 
   oneof test_type {
-    SkipTest skip = 5;
-    EvalTest eval = 6;
-    CaptureEval capture_eval = 7;
+    SkipTest skip = 2;
+    EvalTest eval = 3;
+    CaptureEval capture_eval = 4;
   }
 }
 
@@ -42,3 +46,54 @@ message CaptureEval {
   string input = 1;
 }
 
+message Implementation {
+  Metadata metadata = 1;
+  
+  repeated ImplementationVariant variants = 2;
+}
+
+message ImplementationVariant {
+    Metadata metadata = 1;
+  
+    repeated string specification_uids = 2;
+
+    // Command to run for tests, $(PROGRAM) and $(PROGRAM_PATH) will be replaced.
+	  repeated string test_command = 3;
+
+    oneof runtime {
+      ImplementationRuntimeLocal local = 4;
+    }
+
+}
+
+message ImplementationRuntimeLocal {
+  // Local doesn't use any parameters.
+}
+
+message Specification {
+    Metadata metadata = 1;
+
+    // Sections that make up this specification.
+    repeated SpecificationSection sections = 2;
+}
+
+message SpecificationSection {
+  Metadata metadata = 1;
+
+  oneof content {
+    SpecificationSectionSummary section_summary = 2;
+    SpecificationTestSummary test_summary = 3;
+  }
+}
+
+message SpecificationSectionSummary {
+  repeated SpecificationSection subsections = 1;
+}
+
+message SpecificationTestSummary {
+  // Label selctor for the tests that make up this section.
+  string test_selector = 1;
+
+  // Whether this section's tests are optional.
+  bool optional = 2;
+}

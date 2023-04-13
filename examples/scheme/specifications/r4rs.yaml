@@ -20,16 +20,16 @@ sections:
     - metadata:
         displayName: Literals
         name: literal
-      testSelector: 'r4rs/heading: 6.1, r4rs/literal: boolean, r4rs/essential: true'
+      testSelector: r4rs/heading=6.1, r4rs/literal=boolean, r4rs/essential=true
     - metadata:
         description: Not returns `#t` if obj is false, and returns `#f` otherwise.
         displayName: 'Essential Procedure: **not** _obj_'
         name: procedure-not
-      testSelector: 'r4rs/heading: 6.1, r4rs/literal: boolean, r4rs/essential: true'
-    testSelector: 'r4rs/heading: 6.1, r4rs/essential: true'
-  testSelector: 'r4rs: core'
+      testSelector: r4rs/heading=6.1, r4rs/literal=boolean, r4rs/essential=true
+    testSelector: ""
+  testSelector: ""
 - metadata:
     displayName: R4RS Macros
     name: r4rs-macros
   optional: true
-  testSelector: 'r4rs: macro'
+  testSelector: r4rs=macro

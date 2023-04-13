@@ -1,6 +1,9 @@
 package v1
 
-import "github.com/josephlewis42/scheme-compliance/tester/validation"
+import (
+	"github.com/josephlewis42/scheme-compliance/tester/executor"
+	"github.com/josephlewis42/scheme-compliance/tester/validation"
+)
 
 const (
 	TypeSpecification = "Specification"
@@ -45,10 +48,23 @@ func (spec *Specification) Tidy() {
 	}
 }
 
+func (spec *Specification) ConvertToInternal() *executor.Specification {
+	internal := &executor.Specification{
+		Metadata: spec.Metadata.ConvertToInternal(),
+	}
+
+	for _, childSection := range spec.Sections {
+		internal.Sections = append(internal.Sections, childSection.ConvertToInternal())
+	}
+
+	return internal
+}
+
 type SpecificationSection struct {
-	Metadata     Metadata               `json:"metadata"`
+	Metadata Metadata `json:"metadata"`
+	Optional bool     `json:"optional,omitempty"`
+
 	TestSelector LabelSelector          `json:"testSelector"`
-	Optional     bool                   `json:"optional,omitempty"`
 	Sections     []SpecificationSection `json:"sections,omitempty"`
 }
 
@@ -60,11 +76,13 @@ func (section *SpecificationSection) Validate(validator *validation.Validator) {
 
 	section.TestSelector.Validate(validator.Field("testSelctor"))
 
-	validator.WithField("sections", func(validator *validation.Validator) {
-		for idx, section := range section.Sections {
-			section.Validate(validator.AtIndex(idx))
-		}
-	})
+	validation.OneOf().
+		ValidatedField("testSelector", section.TestSelector != "", section.TestSelector.Validate).
+		ValidatedField("sections", len(section.Sections) > 0, func(validator *validation.Validator) {
+			for idx, section := range section.Sections {
+				section.Validate(validator.AtIndex(idx))
+			}
+		}).Validate(validator)
 }
 
 // Tidy cleans up the structure to remove validation warnings.
@@ -74,10 +92,31 @@ func (section *SpecificationSection) Tidy() {
 	}
 }
 
-// HydratedSection is a runtime representation of a report section.
-type HydratedSection struct {
-	Metadata
-	TestSelector LabelSelector
-	Optional     bool
-	Depth        int
+func (section *SpecificationSection) ConvertToInternal() *executor.SpecificationSection {
+	internal := &executor.SpecificationSection{
+		Metadata: section.Metadata.ConvertToInternal(),
+	}
+
+	switch {
+	case section.TestSelector != "":
+		internal.Content = &executor.SpecificationSection_TestSummary{
+			TestSummary: &executor.SpecificationTestSummary{
+				TestSelector: string(section.TestSelector),
+			},
+		}
+
+	case len(section.Sections) > 0:
+		var subsections []*executor.SpecificationSection
+		for _, childSection := range section.Sections {
+			subsections = append(subsections, childSection.ConvertToInternal())
+		}
+
+		internal.Content = &executor.SpecificationSection_SectionSummary{
+			SectionSummary: &executor.SpecificationSectionSummary{
+				Subsections: subsections,
+			},
+		}
+	}
+
+	return internal
 }

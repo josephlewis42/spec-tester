@@ -12,6 +12,7 @@ import (
 var hydrateTestsCmd = &cobra.Command{
 	Use:   "hydrate-tests path/to/spec",
 	Short: "Display the hydreated tests for the given path",
+	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
 
@@ -20,9 +21,8 @@ var hydrateTestsCmd = &cobra.Command{
 			return err
 		}
 
-		hydrated := suite.HydrateTests()
-
-		out, err := json.Marshal(hydrated)
+		hydrated := suite.ListTests()
+		out, err := json.MarshalIndent(hydrated, "", "  ")
 		if err != nil {
 			return err
 		}

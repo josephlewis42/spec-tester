@@ -1,5 +1,9 @@
 package executor
 
 type TestSuite interface {
-	HydrateTests() []TestCase
+	ListTests() []*TestCase
+
+	ListImplementations() []*Implementation
+
+	ListSpecifications() []*Specification
 }

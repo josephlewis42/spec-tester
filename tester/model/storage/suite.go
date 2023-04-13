@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/josephlewis42/scheme-compliance/tester/executor"
 	v1 "github.com/josephlewis42/scheme-compliance/tester/model/v1"
 	"github.com/josephlewis42/scheme-compliance/tester/validation"
 )
@@ -89,12 +90,27 @@ func (s *Suite) Diff(w io.Writer) {
 	}
 }
 
-func (s *Suite) HydrateTests() (hydrated []v1.HydratedTestCase) {
+func (s *Suite) ListTests() (hydrated []*executor.TestCase) {
 	for _, t := range s.Tests {
-		t.Value.WalkCases(func(test v1.HydratedTestCase) {
+		t.Value.WalkCases(func(test *executor.TestCase) {
 			hydrated = append(hydrated, test)
 		})
 	}
 
+	return
+}
+
+func (s *Suite) ListImplementations() (hydrated []*executor.Implementation) {
+	for _, impl := range s.Implementations {
+		hydrated = append(hydrated, impl.Value.ConvertToInternal())
+	}
+
+	return
+}
+
+func (s *Suite) ListSpecifications() (hydrated []*executor.Specification) {
+	for _, spec := range s.Specifications {
+		hydrated = append(hydrated, spec.Value.ConvertToInternal())
+	}
 	return
 }
