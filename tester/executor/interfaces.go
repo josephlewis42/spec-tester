@@ -6,4 +6,6 @@ type TestSuite interface {
 	ListImplementations() []*Implementation
 
 	ListSpecifications() []*Specification
+
+	TestAssertionEngine() (*Runtime, error)
 }

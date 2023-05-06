@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"errors"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
@@ -17,17 +18,34 @@ func LoadSuite(path string) (*Suite, error) {
 		RootPath: path,
 	}
 	var err error
-	out.Implementations, err = decode[v1.Implementation](path, "implementations")
+	var testSuites []YamlFile[v1.TestSuite]
+
+	testSuites, err = decode[v1.TestSuite](path, false)
+	switch {
+	case err != nil:
+		return nil, err
+
+	case len(testSuites) > 1:
+		return nil, errors.New("conflicting TestSuite definitions")
+
+	case len(testSuites) == 0:
+		return nil, errors.New("missing TestSuite defintion")
+
+	default:
+		out.TestSuite = testSuites[0]
+	}
+
+	out.Implementations, err = decode[v1.Implementation](filepath.Join(path, "implementations"), true)
 	if err != nil {
 		return nil, err
 	}
 
-	out.Tests, err = decode[v1.Test](path, "tests")
+	out.Tests, err = decode[v1.Test](filepath.Join(path, "tests"), true)
 	if err != nil {
 		return nil, err
 	}
 
-	out.Specifications, err = decode[v1.Specification](path, "specifications")
+	out.Specifications, err = decode[v1.Specification](filepath.Join(path, "specifications"), true)
 	if err != nil {
 		return nil, err
 	}
@@ -35,12 +53,28 @@ func LoadSuite(path string) (*Suite, error) {
 	return out, nil
 }
 
-func decode[T any](root, subdir string) ([]YamlFile[T], error) {
+func decode[T any](path string, recurse bool) ([]YamlFile[T], error) {
 	var results []YamlFile[T]
 
-	err := filepath.Walk(filepath.Join(root, subdir), func(path string, info fs.FileInfo, err error) error {
-		if err != nil || info.IsDir() {
+	processedRoot := false
+
+	err := filepath.Walk(path, func(path string, info fs.FileInfo, err error) error {
+		if err != nil {
 			return err
+		}
+
+		if info.IsDir() {
+			switch {
+			case recurse:
+				return nil
+
+			case !processedRoot:
+				processedRoot = true
+				return nil
+
+			default:
+				return filepath.SkipDir
+			}
 		}
 
 		switch filepath.Ext(info.Name()) {

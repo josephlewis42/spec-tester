@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"github.com/josephlewis42/scheme-compliance/internal/specctx"
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/slog"
 )
 
 var cfgFile string
@@ -19,6 +21,11 @@ to quickly create a Cobra application.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		ctx := cmd.Context()
+		ctx = specctx.WithLogger(ctx, slog.New(slog.NewJSONHandler(cmd.ErrOrStderr())))
+		cmd.SetContext(ctx)
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

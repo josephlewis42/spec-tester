@@ -13,12 +13,19 @@ import (
 type Suite struct {
 	RootPath string
 
+	TestSuite       YamlFile[v1.TestSuite]
 	Implementations []YamlFile[v1.Implementation]
 	Specifications  []YamlFile[v1.Specification]
 	Tests           []YamlFile[v1.Test]
 }
 
 func (s *Suite) RunValidation(callback func(name string, v *validation.Validator)) {
+	{
+		v := &validation.Validator{}
+		s.TestSuite.Value.Validate(v)
+		callback(s.TestSuite.Path, v)
+	}
+
 	for _, impl := range s.Implementations {
 		v := &validation.Validator{}
 		impl.Value.Validate(v)
@@ -46,6 +53,8 @@ func (s *Suite) RunValidation(callback func(name string, v *validation.Validator
 
 // Tidy cleans up the structure to remove validation warnings.
 func (s *Suite) Tidy() {
+	s.TestSuite.Value.Tidy()
+
 	for _, impl := range s.Implementations {
 		impl.Value.Tidy()
 	}
@@ -61,6 +70,8 @@ func (s *Suite) Tidy() {
 
 // Save updates the files on disk.
 func (s *Suite) Save() {
+	s.TestSuite.Save()
+
 	for _, impl := range s.Implementations {
 		impl.Save()
 	}
@@ -77,6 +88,8 @@ func (s *Suite) Save() {
 // Diff returns a human-readable diff for the whole suite compared to its stored version.
 // The output isn't stable.
 func (s *Suite) Diff(w io.Writer) {
+	fmt.Fprint(w, s.TestSuite.Diff())
+
 	for _, impl := range s.Implementations {
 		fmt.Fprint(w, impl.Diff())
 	}
@@ -113,4 +126,8 @@ func (s *Suite) ListSpecifications() (hydrated []*executor.Specification) {
 		hydrated = append(hydrated, spec.Value.ConvertToInternal())
 	}
 	return
+}
+
+func (s *Suite) TestAssertionEngine() (*executor.Runtime, error) {
+	return s.TestSuite.Value.Spec.Assertions.CreateRuntime()
 }

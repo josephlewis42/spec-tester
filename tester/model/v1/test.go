@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 
@@ -226,20 +227,30 @@ func (tc *TestCase) Hydrate(parent HydratedTestCaseTemplate) *executor.TestCase 
 			},
 		}
 
-	case expect.Exact != nil:
-		out.TestType = &executor.TestCase_Eval{
-			Eval: &executor.EvalTest{
-				Input: *tc.Input,
-				Expect: &executor.EvalTest_Exact{
-					Exact: *expect.Exact,
-				},
+		// string expectation_type = 2;
+		// string expectation_options_json = 3;
+
+	case expect == nil:
+		out.TestType = &executor.TestCase_Invalid{
+			Invalid: &executor.InvalidTest{
+				Message: "Missing expectation",
 			},
 		}
-	case expect.Undefined != nil:
-		out.TestType = &executor.TestCase_CaptureEval{
-			CaptureEval: &executor.CaptureEval{
-				Input: *tc.Input,
+	case len(*expect) != 1:
+		out.TestType = &executor.TestCase_Invalid{
+			Invalid: &executor.InvalidTest{
+				Message: fmt.Sprintf("Expected 1 expectation got %d", len(*expect)),
 			},
+		}
+	default:
+		for k, v := range *expect {
+			out.TestType = &executor.TestCase_Eval{
+				Eval: &executor.EvalTest{
+					Input:                  *tc.Input,
+					ExpectationType:        k,
+					ExpectationOptionsJson: string(v),
+				},
+			}
 		}
 	}
 
@@ -257,23 +268,17 @@ func coalesce[T any](args ...T) (zero T) {
 	return
 }
 
-type TestExpectation struct {
-	// Indicates an exact value is required.
-	Exact *string `json:"exact,omitempty"`
-	// Indicates undefined behavior.
-	Undefined *bool `json:"undefined,omitempty"`
-}
+type TestExpectation map[string]json.RawMessage
 
 func (t *TestExpectation) Validate(validator *validation.Validator) {
-	validation.OneOf().
-		Field("exact", t.Exact != nil).
-		ValidatedField("undefined", t.Undefined != nil, func(validator *validation.Validator) {
-			switch {
-			case t.Undefined == nil:
-				return
-			case *t.Undefined == false:
-				validator.Error("may only be true")
-			}
-		}).
-		Validate(validator)
+
+	if t == nil {
+		validator.Error("Requires an assertion")
+	}
+
+	oneof := validation.OneOf()
+	for k := range *t {
+		oneof = oneof.Field(k, true)
+	}
+	oneof.Validate(validator)
 }

@@ -1,0 +1,63 @@
+apiVersion: compliancetest/v1
+kind: TestSuite
+metadata:
+  description: Test suite for Scheme implementations.
+  displayName: Scheme
+  name: scheme
+spec:
+  assertionConfig:
+    definitions:
+    - functionName: exact
+      inputSchema:
+        type: string
+      name: exact
+    - functionName: example
+      inputSchema:
+        type: string
+      name: example
+    - functionName: success
+      inputSchema:
+        type: object
+      name: success
+    - functionName: example
+      inputSchema:
+        type: boolean
+      name: undefined
+    script: |-
+      // Assertion functions receive a test object with the following structure:
+      //
+      // metadata:
+      //   uid: string // UID for the test
+      //   labels: map<string, string> // labels for the test
+      // input: string // The test's input value
+      // config: <any> // Parsed configuration matching the inputSchema.
+      // output:
+      //   stdout: string // stdout of the process
+      //   stderr: string // stderr of the process
+      //   exitCode: int  // exit code of the process
+      //
+      // They're expected to return an object with a single top level field depending on the outcome:
+      //
+      // Success:
+      //   {"success":{}}
+      //
+      // Failure:
+      //   {"failure": {"message": "some failure message"}}
+      //
+      // Example:
+      //   {"example": {"stdout": "captured stdout", "stderr": "captured stderr", "exit_code": 0}}
+      function fail(message) {
+        return {"failure": {"message": message || "failed evaluation"}};
+      }
+      function success(testContext) {
+        return {"success": {}}
+      }
+      function example(testContext) {
+        return {"example": testContext.output}
+      }
+      function exact(testContext) {
+        if (testContext.config === testContext.output.stdout) {
+          return success();
+        }
+        return fail("expected: " + testContext.config + " got: " + testContext.output.stdout);
+      }

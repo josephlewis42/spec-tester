@@ -1,4 +1,4 @@
 // Package executor contains the specification testing engine capable of running test specs.
 package executor
 
-//go:generate protoc --go_out=. --go_opt=paths=source_relative  model.proto
+//go:generate protoc --go_out=. --go_opt=paths=source_relative --go-json_out=. --go-json_opt=paths=source_relative  model.proto

@@ -22,7 +22,7 @@ message TestCase {
   oneof test_type {
     SkipTest skip = 2;
     EvalTest eval = 3;
-    CaptureEval capture_eval = 4;
+    InvalidTest invalid = 4;
   }
 }
 
@@ -36,14 +36,14 @@ message SkipTest {
 message EvalTest {
   string input = 1;
 
-  oneof expect {
-    string exact = 2;
-  }
+  string expectation_type = 2;
+  string expectation_options_json = 3;
 }
 
-// A test that is for undefined behavior, the output is captured.
-message CaptureEval {
-  string input = 1;
+// A test that will always fail.
+message InvalidTest {
+  // Reason the test was failed.
+  string message = 1;
 }
 
 message Implementation {
@@ -96,4 +96,26 @@ message SpecificationTestSummary {
 
   // Whether this section's tests are optional.
   bool optional = 2;
+}
+
+message ProcessOutput {
+  string stdout = 1;
+  string stderr = 2;
+  int64 exit_code = 3;
+}
+
+message TestResult {
+  message Success {
+
+  }
+
+  message Failure {
+    string message = 1;
+  }
+
+  oneof status {
+    Success success = 1;
+    Failure failure = 2;
+    ProcessOutput example = 3;
+  }
 }

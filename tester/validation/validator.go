@@ -131,7 +131,7 @@ func AssertDistinctMapping[T any, V comparable](v *Validator, slice []T, mapper 
 		if existing, ok := conflicts[key]; ok {
 			v.AtIndex(idx).
 				Error(
-					"conflicts with entries: %q, entries must have distinct sub-fields: %q",
+					"conflicts with entries: %v, entries must have distinct sub-fields: %q",
 					existing,
 					subFieldPaths,
 				)
